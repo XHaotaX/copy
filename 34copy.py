@@ -11,32 +11,53 @@ import tkinter as Tkinter
 import threading
 import zipfile
 
+##без коментариев
 def zip_files_dirs(dir_dst):
+    MMax=0
+    k=0
+    for root, dirs, files in os.walk(dir_dst):
+        for name in files:
+            MMax=MMax+1
+    try:
+        out_label['text']=("обнаружено"+str(MMax))##
+    except BaseException:
+        c=0
+
     for direc in os.listdir(dir_dst):
         direc_src=os.path.join(dir_dst,direc)
         for Yd in os.listdir(direc_src):
             Y_src=os.path.join(direc_src,Yd)
-            if Y_src.endswith('.zip'):
+            try:
+                k=k+1
+                out_label['text']=("обработано "+str(k-1)+"/"+str(MMax)+"\n"+Y_src)##
+            except BaseException:
+                c=0
+            ## в случае встречи рар без этого ифа создает пустые *.rar.zip
+##            if Y_src.endswith('.rar') or Y_src.endswith('.RAR'):##вообшето можно можно довить обработку и рара
+##                continue
+##          сотрит(XD sotrit) зип ли файл если нет создает *.зип если да тогда возрашает "обьект" зипа
+##            if Y_src.endswith('.zip'):
+            if zipfile.is_zipfile(Y_src):
                 Yzip=zipfile.ZipFile(str(Y_src),"a")
             else:
                 Yzip=zipfile.ZipFile(str(Y_src+'.zip'),"a")
             for root, dirs, files in os.walk(Y_src):
                     for name in files:
-                        if stop.is_set():
+                        if stop.is_set():##ЕСЛИ НАЖАТА КНОПКА ОТМЕНА
                             stop.clear()
                             log=open(logFiles,'a')
                             log.write(" stop zip ")
                             log.close()
                             Yzip.close()
                             sys.exit()
-                        p=os.path.join(root,name)
+                        p=os.path.join(root,name)##не выкатаю зачем это
                         p=p[len(Y_src)+1:]
                         if not len(name)==len(p):
                             p=p[:-len(name)-1]+"/"+name
-                        try:
+                        try:## ЕСЛИ ФАЙЛА НЕТ  ТО ПРИ СРАВНЕНИИИ ВЫКИНЕT ЕРРОр и запишит файл в зип
                             if Yzip.getinfo(p).file_size==os.stat(os.path.join(root,name)).st_size:
                                 continue
-                            else:
+                            else:##ЕСЛИ ФАЙЛ ЕСТЬ ТО В ТЕОРРИИ СОЗДАЕТ ЕГО КОПИИЮ
                                 f_dst=0
                                 p=p[:p.find('(')]+p[p.find(')'):]
                                 try:
@@ -52,6 +73,7 @@ def zip_files_dirs(dir_dst):
                             #print(p)
                             Yzip.write(os.path.join(root,name),p, compress_type=zipfile.ZIP_DEFLATED)
             Yzip.close()
+##            ОПАСНАЯ СТРОКА ИБО УДАЛЯЕТ КАТОЛОГ
             shutil.rmtree(Y_src, ignore_errors=True)
 
 def del_empty_dirs(path):
@@ -88,6 +110,7 @@ def copyy(dir_src,dir_dst,zap=0):
                     temptime=datetime.datetime.fromtimestamp(os.path.getmtime(f_src))
                     if stop.is_set():
                         stop.clear()
+                        temp=datetime.datetime.now()
                         log.write(""+str(temp.day)+"/"+str(temp.month)+"/"+str(temp.year)+" "+str(temp.hour)+":"+str(temp.minute)+":"+str(temp.second)+" stop "+str(k-1)+"/"+str(MMax)+"\n")   
                         log.close()
                         sys.exit()
@@ -148,13 +171,13 @@ def copyy(dir_src,dir_dst,zap=0):
     log.write("check/move/all:"+str(k)+"/"+str(Cf)+"/"+str(MMax)+".\n end")
     log.close()
     del_empty_dirs(dir_src)
-    out_label['text']=("провереномешено/всего:"+str(k)+"/"+str(Cf)+"/"+str(MMax)+".\nзакончено,начата архивация")
+    out_label['text']=("проверено/перемешено/всего:"+str(k)+"/"+str(Cf)+"/"+str(MMax)+".\nзакончено,начата архивация")
     try:
         if ZiP.get()==1:
             zip_files_dirs(dir_dst)
         message_button['state']=Tkinter.DISABLED
         otm_button['state']=Tkinter.DISABLED
-        out_label['text']=("провереномешено/всего:"+str(k)+"/"+str(Cf)+"/"+str(MMax)+".\nзакончено")##
+        out_label['text']=("проверено/перемешено/всего:"+str(k)+"/"+str(Cf)+"/"+str(MMax)+".\nзакончено")##
     except BaseException:
         c=0
 
@@ -203,6 +226,7 @@ def checkPath():
                 out_label['text']=("пути НЕ сушествуют!!!: \n")
         if c==0:
             message_button['state']='normal'
+            Zip_button['state']='normal'
             out_label['text']=("пути сушествуют, готов к работе\n")
     except BaseException:
         out_label['text']=("запись не верна\n(возмжно присуствуют русские символы)")
@@ -265,12 +289,14 @@ def unzi(dir_dft,k):
                 check_button['state']='normal'
                 out_label['text']=("разархивация остановлено")
                 sys.exit()
-            if Y_src.endswith('.zip'):
+##            if Y_src.endswith('.zip'):
+            if zipfile.is_zipfile(Y_src):
                 Yzip=zipfile.ZipFile(str(Y_src),"a")
                 Yzip.extractall(os.path.join(Y_src[:-4]))
                 Yzip.close()
                 try:
-                    if Y_src.endswith('.zip'):
+                    if zipfile.is_zipfile(Y_src):
+##                    if Y_src.endswith('.zip'):
                         os.remove(Y_src)
                 except BaseException:
                     c=0
