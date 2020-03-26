@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
-
+#-*- coding:  utf-8 -*-
+from __future__ import unicode_literals
 import sys
 import os, filecmp
 import subprocess
@@ -281,7 +281,7 @@ def dis():
     data_entry["state"]= Tkinter.DISABLED if data_entry["state"]=='normal' else 'normal'
 
 if __name__ == '__main__':
-    os.popen('chcp').read()
+##    os.popen('cp1252').read()
     stop= threading.Event()
     dir = os.path.abspath(os.curdir)
     date=datetime.datetime.now()
@@ -326,7 +326,7 @@ if __name__ == '__main__':
         Bb = Tkinter.IntVar()
         BByear=datetime.datetime.now().year
         if not (not os.path.exists("data.txt") or os.stat("data.txt").st_size == 0):
-            dataF=open("data.txt")
+            dataF=open("data.txt",'r',encoding='cp1252',errors='ignore')
             temp=dataF.read().splitlines()
             try:
                 src.set(str(temp[0]))
@@ -361,13 +361,13 @@ if __name__ == '__main__':
         check_button.grid(row=3,column=1, padx=5, pady=5, sticky="E")
         
         message_button = Tkinter.Button(text="начать",state=Tkinter.DISABLED, command=display_full_name)
-        message_button.grid(row=5,column=0, padx=5, pady=5, sticky="W"+"E"+"N"+"S",columnspan=1)
+        message_button.grid(row=5,column=1, padx=5, pady=5, sticky="W"+"E"+"N"+"S",columnspan=1)
         
         otm_button=Tkinter.Button(text="отменить",state=Tkinter.DISABLED,command=otmena)
-        otm_button.grid(row=5,column=1, padx=5, pady=5,sticky="W"+"E"+"N"+"S",columnspan=1)
-
+        otm_button.grid(row=5,column=2, padx=5, pady=5,sticky="W"+"E"+"N"+"S",columnspan=1)
+## опасная кнопка
         Zip_button=Tkinter.Button(text="разархивировать все",state=Tkinter.DISABLED,command=UnZip_all)
-        Zip_button.grid(row=5,column=2, padx=5, pady=5,sticky="W"+"E"+"N"+"S",columnspan=1)
+##        Zip_button.grid(row=5,column=2, padx=5, pady=5,sticky="W"+"E"+"N"+"S",columnspan=1)
         
         root.resizable(width=False, height=False)
 
