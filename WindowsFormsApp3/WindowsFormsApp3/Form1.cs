@@ -15,6 +15,7 @@ namespace WindowsFormsApp3
     public partial class Form1 : Form
     {
         public List<string> Path=new List<string>();
+        Thread CopyThread;
 
         public Form1()
         {
@@ -23,6 +24,8 @@ namespace WindowsFormsApp3
             Path.Add("nani");
             textBox1.Text = "D:/temp/Archives";
             textBox2.Text = "D:/temp/qq";
+            CopyThread = new Thread(new ThreadStart(Copy));
+            CopyThread.Priority = ThreadPriority.Highest;
         }
 
         private void toolStripSplitButton1_ButtonClick(object sender, EventArgs e)
@@ -47,20 +50,40 @@ namespace WindowsFormsApp3
             }
 
         }
+        private void button3_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog temp = new FolderBrowserDialog();
+            if (temp.ShowDialog() == DialogResult.OK)
+            {
+                //Get the path of specified file
+                textBox1.Text = temp.SelectedPath;
+                Check(textBox1);
+                //Read the contents of the file into a stream
+            }
+        }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Thread CopyThread = new Thread(new ThreadStart(Copy));
+            button1.Enabled = false;
+            checkBox1.Enabled = false;
             CopyThread.Start();
-//            Copy();
+            button2.Enabled = true;
+            //            Copy();
             /*
              * как првавило кнопа разблокирова мы ее блокируем
              начало работы
              еще раз проверяем пути
                         
             */
-            
+
         }
+        private void button2_Click(object sender, EventArgs e)
+        {
+            CopyThread.Abort();
+            button2.Enabled = false;
+            CheckPath(sender,e);
+        }
+
         private void helo()
         {
             MessageBox.Show("HElo", "i work", MessageBoxButtons.OK,
@@ -82,13 +105,14 @@ namespace WindowsFormsApp3
                 temp.BackColor = Color.FromArgb(255, 255, 255);
                 temp.ForeColor = Color.FromArgb(50, 180, 50);
                 toolStripStatusLabel1.ForeColor = Color.FromArgb(40, 200, 40);
-                button1.Enabled = true;
+//                button1.Enabled = true;
                 return true;
             }
         }
         private void CheckPath(object sender, EventArgs e)
         {
             Path[0] = textBox1.Text;
+            Path[1] = textBox2.Text;
             Check(textBox1);
             Check(textBox2);
             if (Check(textBox1)&&Check(textBox2))
@@ -101,18 +125,6 @@ namespace WindowsFormsApp3
              * так же отвечает за блокировку кнопок начала работы
              * по умолчанию блокированы
              */
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog temp = new FolderBrowserDialog();
-            if (temp.ShowDialog() == DialogResult.OK)
-            {
-                //Get the path of specified file
-                textBox1.Text = temp.SelectedPath;
-                Check(textBox1);
-                //Read the contents of the file into a stream
-            }
         }
 
         private void recursiveCreateAllNewDirectory(string dir)
@@ -149,13 +161,17 @@ namespace WindowsFormsApp3
                             where (File.GetCreationTime(i).Year <= DateTime.Now.Year)
                             select i;
 //                BeginInvoke((MethodInvoker)(() => label3.Text = "-" + files.LongCount().ToString() ));//количество файлов в папке
-                BeginInvoke((MethodInvoker)(()=>toolStripProgressBar1.Maximum = Convert.ToInt32(files.LongCount())));
-                BeginInvoke((MethodInvoker)(() => toolStripProgressBar1.Value = 0));
+//                BeginInvoke((MethodInvoker)(()=>toolStripProgressBar1.Maximum = Convert.ToInt32(files.LongCount())));
+                Invoke((MethodInvoker)(() => toolStripProgressBar1.Maximum = Convert.ToInt32(files.LongCount())));
+//                BeginInvoke((MethodInvoker)(() => toolStripProgressBar1.Value = 0));
+                Invoke((MethodInvoker)(() => toolStripProgressBar1.Value = 0));
                 foreach (string file in files)
                 {
+                    //не понятно зачем label4.инвоке елси можно просто инвоке
                     label4.Invoke((MethodInvoker)(() => label4.Text = file));
-                    BeginInvoke((MethodInvoker)(() => toolStripProgressBar1.PerformStep()));
-                    string fileto = Path[1] + file.Substring(Path[0].Length);//тута сделать что надото. шта?
+//                    BeginInvoke((MethodInvoker)(() => toolStripProgressBar1.PerformStep()));
+                    Invoke((MethodInvoker)(() => toolStripProgressBar1.PerformStep()));
+                    string fileto = Path[1] + file.Substring(Path[0].Length);//тута сделать что надото. шта?соглашусь, шта?
                     try
                     { 
                         File.Copy(file, fileto, checkBox1.Checked);
@@ -166,6 +182,8 @@ namespace WindowsFormsApp3
                     }
                 }
             }
+            label4.Invoke((MethodInvoker)(() => label4.Text = "END"));
+            Invoke((MethodInvoker)(()=> checkBox1.Enabled = true));
             MessageBox.Show("Закончено копирование","Сообшение о завершении", MessageBoxButtons.OK,
         MessageBoxIcon.Information,MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
 
@@ -251,5 +269,6 @@ namespace WindowsFormsApp3
         {
 
         }
+
     }
 }
