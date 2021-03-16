@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using System.IO.Compression;
 
 namespace WindowsFormsApp3
 {
@@ -196,8 +197,39 @@ namespace WindowsFormsApp3
             }
             label4.Invoke((MethodInvoker)(() => label4.Text = "END"));
             Invoke((MethodInvoker)(()=> checkBox1.Enabled = true));
-            MessageBox.Show("Закончено копирование","Сообшение о завершении", MessageBoxButtons.OK,
+/*            MessageBox.Show("Закончено копирование","Сообшение о завершении", MessageBoxButtons.OK,
         MessageBoxIcon.Information,MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+*/
+            //идут работы || 
+            //           \  /
+            //            \/
+            dirs = from i in Directory.EnumerateDirectories(Path[1])
+                       where true
+                       select i;
+            foreach (string cur_dir in dirs)
+            {
+                var ZipDirs = from i in Directory.EnumerateDirectories(cur_dir)
+                       where true
+                       select i;
+                foreach (string zip_dir in ZipDirs)
+                {
+
+                    if (!System.IO.File.Exists(zip_dir + ".zip"))
+                        ZipFile.CreateFromDirectory(zip_dir, zip_dir + ".zip", CompressionLevel.Optimal, false);
+                    else
+                    {
+                        ZipArchive Zip = ZipFile.Open(zip_dir + ".zip", ZipArchiveMode.Update);
+
+                        IEnumerable<string> files = from i in Directory.EnumerateFiles(zip_dir, "*.pdf", SearchOption.AllDirectories)
+                                                    where (/*File.GetCreationTime(i).Year*/File.GetLastWriteTime(i).Year <= DateTime.Now.Year)
+                                                    select i;
+                        foreach (string file in files)
+                            Zip.CreateEntryFromFile(file,file.Substring(zip_dir.Length+1));
+                        Zip.Dispose();
+                    }
+                }
+            }
+
 
             /* сделано /\/\/\/\/\
             /*
@@ -275,6 +307,9 @@ namespace WindowsFormsApp3
                         }
 
                         }*/
+
+            MessageBox.Show("Закончено архивирование", "Сообшение о завершении", MessageBoxButtons.OK,
+        MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             Invoke((MethodInvoker)(() => button2.Enabled = false));
         }
 
